@@ -19,6 +19,7 @@ class Game {
     private int blackKills = 0;
     private int whiteKills = 0;
     private boolean lastMoveWasPass = false;
+    private boolean botExists = false;
 
 
     private synchronized void move(int row, int col , Player player) {
@@ -489,7 +490,7 @@ class Game {
             }
         }
 
-        private void processCommands() {
+        private void processCommands() throws Exception {
             while (input.hasNextLine()) {
                 var command = input.nextLine();
                 if (command.startsWith("QUIT")) {
@@ -512,6 +513,19 @@ class Game {
                     return;
 
                 }
+                else if (command.startsWith("BOT")) {
+
+                    if(botExists){
+                        output.println("MESSAGE Bot Egzists");
+                    }
+                    else{
+                        ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", "cd \"C:\\Users\\skorpi\\Desktop\\ProjeltTP\\bot\\out\\production\\bot\" && java Bot 127.0.0.1 "+boardSize);
+                        builder.start();
+                        botExists = true;
+                    }
+
+
+                }
             }
         }
 
@@ -519,7 +533,7 @@ class Game {
 
             if(currentPlayer == this){
 
-                if(lastMoveWasPass){
+                if(lastMoveWasPass && opponent != null){
 
                     output.println("END " + countScore());
                     opponent.output.println("END " + countScore());
@@ -529,8 +543,11 @@ class Game {
 
                 lastMoveWasPass = true;
                 output.println("PASSED");
-                opponent.output.println("MESSAGE Opponent passed, your turn");
-                currentPlayer = currentPlayer.opponent;
+
+                if (opponent != null && opponent.output != null) {
+                    opponent.output.println("MESSAGE Opponent passed, your turn");
+                    currentPlayer = currentPlayer.opponent;
+                }
 
             }
             else{

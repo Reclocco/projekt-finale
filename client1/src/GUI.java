@@ -58,8 +58,8 @@ class GUI {
 
         JMenuBar mainMenuBar = new JMenuBar();
 
-        String[] menuOptions = { "Options", "Pass", "Surrender"};
-        String[] menuMessage = { "Options", "PASS", "SURRENDER"};
+        String[] menuOptions = { "Options", "Pass", "Surrender","Bot"};
+        String[] menuMessage = { "Options", "PASS", "SURRENDER","BOT"};
 
 
         JMenu menu = new JMenu(menuOptions[0]);
