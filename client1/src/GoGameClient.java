@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.util.Scanner;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -22,8 +23,8 @@ public class GoGameClient {
 
     }
 
-    static void sendMoveMessage(int j, int x){
-        out.println("MOVE " + j + ";" + x);
+    static void sendMessage(String message){
+        out.println(message);
     }
 
     private void play() throws Exception {
@@ -31,7 +32,9 @@ public class GoGameClient {
             var response = in.nextLine();
             var pawn = response.charAt(8);
             var opponentPawn = pawn == 'B' ? 'W' : 'B';
-            out.println("SIZE " + GameSize);
+
+            if(pawn == 'B') out.println("SIZE " + GameSize);
+
             while (in.hasNextLine()) {
                 response = in.nextLine();
                 if (response.startsWith("VALID_MOVE")) {
@@ -39,16 +42,22 @@ public class GoGameClient {
                     gui.currentCross.setPawn(pawn);
                     gui.currentCross.repaint();
                     gui.messageLabel.setText("Enemy turn");
+                    gui.messageLabel.setBackground(Color.lightGray);
 
-                } else if (response.startsWith("OPPONENT_MOVED")) {
+                }
+
+                else if (response.startsWith("OPPONENT_MOVED")) {
 
                     String[] cords = response.substring(15).split(";");
 
                     gui.board[Integer.parseInt(cords[0])][Integer.parseInt(cords[1])].setPawn(opponentPawn);
                     gui.board[Integer.parseInt(cords[0])][Integer.parseInt(cords[1])].repaint();
                     gui.messageLabel.setText("Opponent moved, your turn");
+                    gui.messageLabel.setBackground(Color.GREEN);
 
-                }else if (response.startsWith("MOVE")) {
+                }
+
+                else if (response.startsWith("MOVE")) {
 
                     String[] cords = response.substring(5).split(";");
 
@@ -56,12 +65,35 @@ public class GoGameClient {
                     gui.board[Integer.parseInt(cords[0])][Integer.parseInt(cords[1])].repaint();
 
                 }
+
+                else if (response.startsWith("PASSED")) {
+
+                    gui.messageLabel.setText("You passed, enemy turn");
+                    gui.messageLabel.setBackground(Color.lightGray);
+
+                }
+
                 else if (response.startsWith("MESSAGE")) {
 
-                    gui.messageLabel.setText(response.substring(8));
+                    response = response.substring(8);
 
-                } else if (response.startsWith("OTHER_PLAYER_LEFT")) {
-                    JOptionPane.showMessageDialog(gui.frame, "Other player left");
+                    if(response.equals("Your turn") || response.equals("Opponent passed, your turn"))
+                        gui.messageLabel.setBackground(Color.GREEN);
+                    else
+                        gui.messageLabel.setBackground(Color.RED);
+
+                    gui.messageLabel.setText(response);
+
+
+                }
+
+                else if (response.startsWith("OTHER_PLAYER_LEFT")) {
+                    JOptionPane.showMessageDialog(gui.frame, "Other player left", "GAME ENDS" , JOptionPane.INFORMATION_MESSAGE);
+                    break;
+                }
+
+                else if (response.startsWith("END")) {
+                    JOptionPane.showMessageDialog(gui.frame, response.substring(4), "GAME ENDS" , JOptionPane.INFORMATION_MESSAGE);
                     break;
                 }
             }
@@ -75,16 +107,20 @@ public class GoGameClient {
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
         if (args.length != 2) {
             System.err.println("Pass the server IP and board size");
             return;
         }
 
-        GoGameClient client = new GoGameClient(args[0],Integer.parseInt(args[1]));
-
-        client.play();
+        try{
+            GoGameClient client = new GoGameClient(args[0],Integer.parseInt(args[1]));
+            client.play();
+        }
+        catch (Exception e){
+            System.err.println("SERVER NOT RESPONDING");
+        }
 
     }
 }
